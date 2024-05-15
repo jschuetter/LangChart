@@ -482,16 +482,13 @@ public class Driver extends JFrame implements ActionListener {
                     chartW = Integer.parseInt(newChartColumnsText.getText());
                     if (chartW > 0 && chartH > 0) {
                         //Open chart creation interface
-                        //Disable commas in text entries (would disrupt .csv formatting)
-                        //Allows 50 chars, except commas
-                        //MaskFormatter commaMask = new MaskFormatter("**************************************************");
-                        //commaMask.setInvalidCharacters(",\n\t");
                         chartField = new JTextField[chartH][chartW];
                         JPanel chartFieldPnl = new JPanel(new GridLayout(chartH, chartW));
 
                         for (int i = 0; i < chartH; i++) {
                            for (int j = 0; j < chartW; j++) {
                                chartField[i][j] = new JTextField();
+                               //Disable commas in text entries (would disrupt .csv formatting)
                                chartField[i][j].getInputMap(JComponent.WHEN_FOCUSED).put(
                                        KeyStroke.getKeyStroke("typed ,"), "none");
                                chartFieldPnl.add(chartField[i][j]);
