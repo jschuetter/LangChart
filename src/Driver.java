@@ -1,6 +1,5 @@
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -59,6 +58,18 @@ public class Driver extends JFrame implements ActionListener {
     int chartW, chartH;
     //See AddChart below
 
+
+    //Chart study panels
+    final int STUDY_FILL_IN = 0;
+    final int STUDY_MCQ = 1;
+
+    //Chart study panel (fill-in)
+    JPanel studyChart0;
+    JTextField[][][] studyChart0Field;
+    JButton studyCheckBtn0;
+    HashMap<Chart, JTextField[][]> chartFieldMap0;
+    //See studyChart below
+
 //    JFileChooser filePicker;
 //    FileNameExtensionFilter filetypes = new FileNameExtensionFilter("Image files", "txt", "csv");
 
@@ -66,7 +77,7 @@ public class Driver extends JFrame implements ActionListener {
         this.setTitle("LangChart");
         this.setLayout(new BorderLayout());
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        this.setSize(700,500);
+        this.setSize(700, 500);
 
         //Instantiate toolbar
         {
@@ -109,6 +120,10 @@ public class Driver extends JFrame implements ActionListener {
             newChartPnl.setLayout(new BoxLayout(newChartPnl, BoxLayout.Y_AXIS));
             parentPnl.add(newChartPnl, "Add");
 
+            studyChart0 = new JPanel();
+            studyChart0.setLayout(new BoxLayout(studyChart0, BoxLayout.Y_AXIS));
+            parentPnl.add(studyChart0, "Study0");
+
             this.add(parentPnl, BorderLayout.CENTER);
             pnlLayout.show(parentPnl, "Langs");
         }
@@ -132,15 +147,13 @@ public class Driver extends JFrame implements ActionListener {
         if (src == menuHome) {
             PopulateLangPnl();
             pnlLayout.show(parentPnl, "Langs");
-        }  else if (src == newLangBtn) {
+        } else if (src == newLangBtn) {
             AddLangDir();
-//        } else if (langDirMap.containsKey(src)) {
-//            PopulateChartPnl(langDirMap.get(src));
-//            pnlLayout.show(parentPnl, "Charts");
         } else if (src == newChartBtn || src == menuCreate) {
             AddChart();
         } else if (src == chartSelectBtn) {
-            StudyChart(chartTable.getSelectedValuesList());
+            if (!chartTable.getSelectedValuesList().isEmpty())
+                StudyChart(chartTable.getSelectedValuesList(), STUDY_FILL_IN); //Change 2nd argument if mutliple study options are added
         } else {
             try {
                 if (langDirMap.containsKey(src)) {
@@ -170,7 +183,7 @@ public class Driver extends JFrame implements ActionListener {
         langBtns = new ArrayList<>();
         Path langsPath = FileSystems.getDefault().getPath("charts");
         try (DirectoryStream<Path> langStream = newDirectoryStream(langsPath)) {
-            for (Path langEntry: langStream) {
+            for (Path langEntry : langStream) {
                 //langs.add(langEntry.getFileName().toString());
 
                 //Check for directory
@@ -211,7 +224,7 @@ public class Driver extends JFrame implements ActionListener {
                                 "Are you sure you want to delete this directory?", "Confirm delete", JOptionPane.YES_NO_OPTION);
                         if (confirmValue == JOptionPane.YES_OPTION) {
                             try {
-                                for (File f: this.getSelectedFiles()) {
+                                for (File f : this.getSelectedFiles()) {
                                     DirectoryStream<Path> stream = Files.newDirectoryStream(f.toPath());
                                     for (Path entry : stream) {
                                         Files.delete(entry);
@@ -261,7 +274,7 @@ public class Driver extends JFrame implements ActionListener {
             }
         };
         try (DirectoryStream<Path> chartStream = newDirectoryStream(langDir, filter)) {
-            for (Path chartEntry: chartStream) {
+            for (Path chartEntry : chartStream) {
                 String chartName = chartEntry.getFileName().toString().replaceFirst("[.][^.]+$", "");
                 //JButton newBtn = new JButton(chartName);
                 //newBtn.addActionListener(this);
@@ -304,7 +317,7 @@ public class Driver extends JFrame implements ActionListener {
                                 "Are you sure you want to delete this file?", "Confirm delete", JOptionPane.YES_NO_OPTION);
                         if (confirmValue == JOptionPane.YES_OPTION) {
                             try {
-                                for (File f: this.getSelectedFiles()) {
+                                for (File f : this.getSelectedFiles()) {
                                     DirectoryStream<Path> stream = Files.newDirectoryStream(f.toPath());
                                     for (Path entry : stream) {
                                         Files.delete(entry);
@@ -347,7 +360,7 @@ public class Driver extends JFrame implements ActionListener {
         //Walk through directory looking for image files
         try {
             DirectoryStream<Path> stream = newDirectoryStream(p, filter);
-            for (Path entry: stream) {
+            for (Path entry : stream) {
 //                System.out.println("Found " + entry.toString());
                 return entry.toString();
             }
@@ -424,7 +437,7 @@ public class Driver extends JFrame implements ActionListener {
                     if (newLangIconFile != null) {
                         newLangIcon = new ImageIcon(newLangIconFile.getPath());
                         try {
-                            copy(newLangIconFile.toPath(),newDir.toPath().resolve(newLangIconFile.getName()));
+                            copy(newLangIconFile.toPath(), newDir.toPath().resolve(newLangIconFile.getName()));
                         } catch (Exception ex) {
                             //System.out.println("Failed to copy image for new directory with title " + newLangTitle);
                             throw new RuntimeException(ex);
@@ -446,7 +459,7 @@ public class Driver extends JFrame implements ActionListener {
     }
 
     //Opens the chart creation interface and saves a new chart
-    void AddChart(){
+    void AddChart() {
         newChartPnl.removeAll();
 
         JPanel newChartPopup = new JPanel();
@@ -469,70 +482,68 @@ public class Driver extends JFrame implements ActionListener {
         newChartPopup.add(newChartErrLbl);
 
 
-
         //boolean goodDimensions = false;
         while (JOptionPane.showConfirmDialog(newChartPnl, newChartPopup, "Chart options",
-                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-                        == JOptionPane.OK_OPTION)
-        {
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+                == JOptionPane.OK_OPTION) {
 
-                //Test input values
-                try {
-                    chartH = Integer.parseInt(newChartRowsText.getText());
-                    chartW = Integer.parseInt(newChartColumnsText.getText());
-                    if (chartW > 0 && chartH > 0) {
-                        //Open chart creation interface
-                        chartField = new JTextField[chartH][chartW];
-                        JPanel chartFieldPnl = new JPanel(new GridLayout(chartH, chartW));
+            //Test input values
+            try {
+                chartH = Integer.parseInt(newChartRowsText.getText());
+                chartW = Integer.parseInt(newChartColumnsText.getText());
+                if (chartW > 0 && chartH > 0) {
+                    //Open chart creation interface
+                    chartField = new JTextField[chartH][chartW];
+                    JPanel chartFieldPnl = new JPanel(new GridLayout(chartH, chartW));
 
-                        for (int i = 0; i < chartH; i++) {
-                           for (int j = 0; j < chartW; j++) {
-                               chartField[i][j] = new JTextField();
-                               //Disable commas in text entries (would disrupt .csv formatting)
-                               chartField[i][j].getInputMap(JComponent.WHEN_FOCUSED).put(
-                                       KeyStroke.getKeyStroke("typed ,"), "none");
-                               chartFieldPnl.add(chartField[i][j]);
-                           }
+                    for (int i = 0; i < chartH; i++) {
+                        for (int j = 0; j < chartW; j++) {
+                            chartField[i][j] = new JTextField();
+                            //Disable commas in text entries (would disrupt .csv formatting)
+                            chartField[i][j].getInputMap(JComponent.WHEN_FOCUSED).put(
+                                    KeyStroke.getKeyStroke("typed ,"), "none");
+                            chartFieldPnl.add(chartField[i][j]);
                         }
-                        newChartPnl.add(chartFieldPnl);
-
-                        JPanel newChartBtnPnl = new JPanel(new FlowLayout());
-                        JButton newChartConfirmBtn, newChartCancelBtn;
-                        newChartCancelBtn = new JButton("Cancel");
-                        newChartCancelBtn.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                PopulateLangPnl();
-                                pnlLayout.show(parentPnl, "Langs");
-                            }
-                        }); //Return to most recent chart page
-                        newChartBtnPnl.add(newChartCancelBtn);
-
-                        newChartConfirmBtn = new JButton("Save chart");
-                        newChartConfirmBtn.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                CreateSaveChartDialog();
-                            }
-                        });
-                        newChartBtnPnl.add(newChartConfirmBtn);
-                        newChartPnl.add(newChartBtnPnl);
-
-                        pnlLayout.show(parentPnl, "Add");
-                        newChartPnl.repaint();
-                        newChartPnl.revalidate();
-                        break;
-
-                    } else {
-                        int breakMe = 1/0; //Call catch statement
                     }
-                } catch (Exception e) {
-                    newChartErrLbl.setText("Invalid dimensions! (must be positive integers)");
-                    System.out.println(e);
+                    newChartPnl.add(chartFieldPnl);
+
+                    JPanel newChartBtnPnl = new JPanel(new FlowLayout());
+                    JButton newChartConfirmBtn, newChartCancelBtn;
+                    newChartCancelBtn = new JButton("Cancel");
+                    newChartCancelBtn.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            PopulateLangPnl();
+                            pnlLayout.show(parentPnl, "Langs");
+                        }
+                    }); //Return to most recent chart page
+                    newChartBtnPnl.add(newChartCancelBtn);
+
+                    newChartConfirmBtn = new JButton("Save chart");
+                    newChartConfirmBtn.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            CreateSaveChartDialog();
+                        }
+                    });
+                    newChartBtnPnl.add(newChartConfirmBtn);
+                    newChartPnl.add(newChartBtnPnl);
+
+                    pnlLayout.show(parentPnl, "Add");
+                    newChartPnl.repaint();
+                    newChartPnl.revalidate();
+                    break;
+
+                } else {
+                    int breakMe = 1 / 0; //Call catch statement
                 }
+            } catch (Exception e) {
+                newChartErrLbl.setText("Invalid dimensions! (must be positive integers)");
+                System.out.println(e);
+            }
         }
     }
-    
+
     void CreateSaveChartDialog() {
         //Ask user where to save file
         JFrame saveChartPopup = new JFrame("Save chart");
@@ -540,14 +551,14 @@ public class Driver extends JFrame implements ActionListener {
         saveChartPopup.setLayout(new BoxLayout(saveChartPopup.getContentPane(), BoxLayout.Y_AXIS));
         JPanel saveChartPnl1 = new JPanel(new FlowLayout());
         JPanel saveChartPnl2 = new JPanel(new FlowLayout());
-        
+
         saveChartPnl1.add(new JLabel("Chart name:"));
         newChartNameText = new JTextField("", 10);
         saveChartPnl1.add(newChartNameText);
         JLabel newChartNameErrLbl = new JLabel();
         saveChartPnl1.add(newChartNameErrLbl);
         saveChartPopup.add(saveChartPnl1);
-        
+
         saveChartPnl2.add(new JLabel("Choose language:"));
         JLabel saveChartSelectedLbl = new JLabel();
         JButton saveChartDirBtn = new JButton("Select folder");
@@ -565,12 +576,22 @@ public class Driver extends JFrame implements ActionListener {
                     saveChartSelectedLbl.setText("Invalid directory! (must be in /charts/ folder)");
             }
         });
+
+        JButton addLangBtn = new JButton(GetScaledIcon("resources/add.png", 10, 10));
+        addLangBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AddLangDir();
+            }
+        });
+
         saveChartPnl2.add(saveChartDirBtn);
         saveChartPnl2.add(saveChartSelectedLbl);
+        saveChartPnl2.add(addLangBtn);
         saveChartPopup.add(saveChartPnl2);
 
         JPanel saveChartBtnPnl = new JPanel(new FlowLayout());
-        JButton cancelBtn, saveBtn, addLangBtn;
+        JButton cancelBtn, saveBtn;
         cancelBtn = new JButton("Cancel");
         cancelBtn.addActionListener(new ActionListener() {
             @Override
@@ -585,7 +606,7 @@ public class Driver extends JFrame implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (!newChartNameText.getText().isEmpty()) {
                     File chartPath = new File(LANG_DIR + "/" + saveChartSelectedLbl.getText() + "/" +
-                            newChartNameText.getText()+".txt");
+                            newChartNameText.getText() + ".txt");
                     try {
                         if (chartPath.createNewFile()) {
                             FileWriter saveFile = new FileWriter(chartPath);
@@ -614,48 +635,66 @@ public class Driver extends JFrame implements ActionListener {
                 }
             }
         });
-        addLangBtn = new JButton(GetScaledIcon("resources/add.png", 10, 10));
-        addLangBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                AddLangDir();
-            }
-        });
+
 
         saveChartBtnPnl.add(cancelBtn);
         saveChartBtnPnl.add(saveBtn);
-        saveChartBtnPnl.add(addLangBtn);
         saveChartPopup.add(saveChartBtnPnl);
 
         saveChartPopup.setVisible(true);
     }
 
-    void StudyChart(List<String> charts) {
+    void StudyChart(List<String> selectedCharts, int mode) {
+        //Read chart(s) from file to local variable
+        ArrayList<Chart> chartList = new ArrayList<>();
+        for (String s : selectedCharts) {
+            chartList.add(new Chart(chartPathMap.get(s).toFile()));
+        }
+        studyChart0.removeAll();
 
+        ArrayList<JTextField[][]> studyFields0 = new ArrayList<>();
+        ArrayList<JPanel> studyPnls = new ArrayList<>();
+        chartFieldMap0 = new HashMap<>();
+
+        for (Chart c : chartList) {
+            JLabel nameLbl = new JLabel(c.getName());
+            nameLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+            studyChart0.add(nameLbl);
+
+            JPanel pnlC = new JPanel(new GridLayout(c.getRows(), c.getColumns()));
+            chartFieldMap0.put(c, new JTextField[c.getRows()][c.getColumns()]);
+            for (int i = 0; i < c.getRows(); i++) {
+                for (int j = 0; j < c.getColumns(); j++) {
+                    chartFieldMap0.get(c)[i][j] = new JTextField();
+                    pnlC.add(chartFieldMap0.get(c)[i][j]);
+                }
+            }
+            studyChart0.add(pnlC);
+        }
+
+        studyCheckBtn0 = new JButton("Check Answers");
+        studyCheckBtn0.setAlignmentX(Component.CENTER_ALIGNMENT);
+        studyCheckBtn0.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //Check fill-in answers
+                for (Chart c : chartList) {
+                    for (int i = 0; i < c.getRows(); i++) {
+                        for (int j = 0; j < c.getColumns(); j++) {
+                            JTextField curField = (chartFieldMap0.get(c))[i][j];
+
+                            if (c.get(i, j).equalsIgnoreCase(curField.getText()))
+                                curField.setBackground(new Color(200, 255, 200));
+                            else
+                                curField.setBackground(new Color(255, 200, 200));
+                        }
+                    }
+                }
+            }
+        });
+        studyChart0.add(studyCheckBtn0);
+
+        pnlLayout.show(parentPnl, "Study" + mode);
     }
-//    
-//    JFileChooser GetFileChooser(File startDir) {
-//        JFileChooser filePicker = new JFileChooser(startDir) {
-//            @Override
-//            public void approveSelection() {
-//                int confirmValue = JOptionPane.showConfirmDialog(this,
-//                        "Are you sure you want to delete this directory?", "Confirm delete", JOptionPane.YES_NO_OPTION);
-//                if (confirmValue == JOptionPane.YES_OPTION) {
-//                    try {
-//                        for (File f: this.getSelectedFiles()) {
-//                            DirectoryStream<Path> stream = Files.newDirectoryStream(f.toPath());
-//                            for (Path entry : stream) {
-//                                Files.delete(entry);
-//                            }
-//                            Files.delete(f.toPath());
-//                        }
-//                    } catch (IOException ex) {
-//                        throw new RuntimeException(ex);
-//                    }
-//
-//                    PopulateLangPnl();
-//                    this.cancelSelection();
-//                }
-//            }
-//    }
+
 }
