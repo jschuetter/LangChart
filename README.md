@@ -1,0 +1,1 @@
+This is a quick-and-dirty solution I threw together in three days to help my sister study for her Spanish final (and maybe help me study Italian as well). I'm still occasionally going back to it and adding or adjusting features though.
