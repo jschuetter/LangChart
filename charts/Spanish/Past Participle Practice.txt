@@ -1,0 +1,4 @@
+Infinitive,Past Participle,
+Hablar,hablado,
+Tener,tenido,
+Vivir,vivido,

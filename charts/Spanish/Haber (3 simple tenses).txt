@@ -1,0 +1,7 @@
+Pronoun,Present,Preterite,Imperfect,
+Yo,he,hube,habia,
+Tu,has,hubiste,habias,
+Ella El Usted,ha,hubo,habia,
+Nosotras Nosotros,hemos,hubimos,habiamos,
+Vosotras Vosotros,habeis,hubeisteis,habiais,
+Ellas Ellos Ustedes,han,hubieron,habian,

@@ -1,0 +1,7 @@
+Pronoun,Hablar,Comer,Vivir,
+Yo,hable,comi,vivi,
+Tu,hablaste,comiste,viviste,
+El Ella Usted,hablo,comio,vivio,
+Nosotros,hablamos,comimos,vivimos,
+Vosotros,hablasteis,comisteis,vivisteis,
+Ellos Ellas Ustedes,hablaron,comieron,vivieron,

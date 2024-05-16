@@ -1,0 +1,7 @@
+Pronoun,Ser,Estar,Ir,
+Yo,sea,este,vaya,
+Tu,seas,estes,vayas,
+El Ella Usted,sea,este,vaya,
+Nosotros,seamos,estemos,vayamos,
+Vosotros,seais,esteis,vayais,
+Ellos Ellas Ustedes,sean,esten,vayan,

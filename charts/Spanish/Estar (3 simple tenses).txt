@@ -1,0 +1,7 @@
+Pronoun,Present,Preterite,Imperfect,
+Yo,estoy,estuve,estaba,
+Tu,estas,estuviste,estabas,
+Ella El Usted,esta,estuvo,estaba,
+Nosotras Nosotros,estamos,estuvimos,estabamos,
+Vosotras Vosotros,estais,estuvisteis,estabais,
+Ellas Ellos Ustedes,estan,estuvieron,estaban,

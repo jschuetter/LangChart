@@ -1,0 +1,4 @@
+,Singular,Plural,
+1st Person,-o,-iamo,
+2nd Person,-i,-ite,
+3rd Person,-a,-ono,

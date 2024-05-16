@@ -1,0 +1,4 @@
+,Singular,Plural,
+1st Person,Haga,Hagamos,
+2nd Person,Hagas,Hagais,
+3rd Person,Haga,Hagan,

@@ -1,0 +1,4 @@
+,Singular,Plural,
+1st Person,me,nos,
+2nd Person,te,os,
+3rd Person,le,les,

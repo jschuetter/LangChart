@@ -1,0 +1,7 @@
+Pronoun,Estudiar,Querer,Escribir,
+Yo,estudie,quiera,escriba,
+Tu,estudies,quieras,escribas,
+El Ella Usted,estudie,quiera,escriba,
+Nosotros,estudiemos,queramos,escribamos,
+Vosotros,estudieis,querais,escribais,
+Ellos Ellas Ustedes,estudien,quieran,escriban,

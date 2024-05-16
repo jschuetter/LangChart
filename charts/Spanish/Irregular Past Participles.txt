@@ -1,0 +1,6 @@
+Infinitive,Past Participle,
+Abrir,abierto,
+Decir,dicho,
+Escribir,escrito,
+Hacer,hecho,
+Ver,visto,
