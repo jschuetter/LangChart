@@ -66,7 +66,7 @@ public class Driver extends JFrame implements ActionListener {
     //Chart study panel (fill-in)
     JPanel studyChart0;
     JTextField[][][] studyChart0Field;
-    JButton studyCheckBtn0;
+    JButton studyCheckBtn0, studyAnsBtn0;
     HashMap<Chart, JTextField[][]> chartFieldMap0;
     //See studyChart below
 
@@ -652,8 +652,6 @@ public class Driver extends JFrame implements ActionListener {
         }
         studyChart0.removeAll();
 
-        ArrayList<JTextField[][]> studyFields0 = new ArrayList<>();
-        ArrayList<JPanel> studyPnls = new ArrayList<>();
         chartFieldMap0 = new HashMap<>();
 
         for (Chart c : chartList) {
@@ -666,12 +664,18 @@ public class Driver extends JFrame implements ActionListener {
             for (int i = 0; i < c.getRows(); i++) {
                 for (int j = 0; j < c.getColumns(); j++) {
                     chartFieldMap0.get(c)[i][j] = new JTextField();
+                    //Autofill first row & column
+                    if (i==0 || j==0) {
+                        chartFieldMap0.get(c)[i][j].setText(c.get(i,j));
+                        chartFieldMap0.get(c)[i][j].setEditable(false);
+                    }
                     pnlC.add(chartFieldMap0.get(c)[i][j]);
                 }
             }
             studyChart0.add(pnlC);
         }
 
+        JPanel studyBtnPnl0 = new JPanel(new FlowLayout());
         studyCheckBtn0 = new JButton("Check Answers");
         studyCheckBtn0.setAlignmentX(Component.CENTER_ALIGNMENT);
         studyCheckBtn0.addActionListener(new ActionListener() {
@@ -682,17 +686,46 @@ public class Driver extends JFrame implements ActionListener {
                     for (int i = 0; i < c.getRows(); i++) {
                         for (int j = 0; j < c.getColumns(); j++) {
                             JTextField curField = (chartFieldMap0.get(c))[i][j];
-
-                            if (c.get(i, j).equalsIgnoreCase(curField.getText()))
-                                curField.setBackground(new Color(200, 255, 200));
-                            else
-                                curField.setBackground(new Color(255, 200, 200));
+                            if (i != 0 && j != 0) { //Only modify editable fields
+                                if (c.get(i, j).equalsIgnoreCase(curField.getText()))
+                                    curField.setBackground(new Color(200, 255, 200));
+                                else
+                                    curField.setBackground(new Color(255, 200, 200));
+                            }
                         }
                     }
                 }
             }
         });
-        studyChart0.add(studyCheckBtn0);
+        studyBtnPnl0.add(studyCheckBtn0);
+
+        studyAnsBtn0 = new JButton("Show Answers");
+        studyAnsBtn0.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (studyAnsBtn0.getText() == "Show Answers") studyAnsBtn0.setText("Hide Answers");
+                else studyAnsBtn0.setText("Show Answers");
+
+                for (Chart c : chartList) {
+                    for (int i = 0; i < c.getRows(); i++) {
+                        for (int j = 0; j < c.getColumns(); j++) {
+                            if (studyAnsBtn0.getText() == "Hide Answers") {
+                                if (i != 0 && j != 0) chartFieldMap0.get(c)[i][j].setBackground(Color.LIGHT_GRAY);
+                                chartFieldMap0.get(c)[i][j].setText(c.get(i, j));
+                            } else {
+                                if (i != 0 && j != 0) {
+                                    chartFieldMap0.get(c)[i][j].setBackground(Color.WHITE);
+                                    chartFieldMap0.get(c)[i][j].setText("");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        studyBtnPnl0.add(studyAnsBtn0);
+
+        studyChart0.add(studyBtnPnl0);
 
         pnlLayout.show(parentPnl, "Study" + mode);
     }
